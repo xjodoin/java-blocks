@@ -1,0 +1,11 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: JavaBlocks
+Bundle-SymbolicName: ca.reivax.javablocks
+Bundle-Version: 0.9.0
+Bundle-Vendor: Xavier Jodoin
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-ClassPath: lib/javassist-3.9.0.GA.jar,
+ .
+Require-Bundle: org.junit4;bundle-version="4.8.1";resolution:=optional,
+ com.netappsid.javassist;bundle-version="3.9.0"
