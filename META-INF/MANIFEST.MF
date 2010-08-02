@@ -9,3 +9,4 @@ Bundle-ClassPath: lib/javassist-3.9.0.GA.jar,
  .
 Require-Bundle: org.junit4;bundle-version="4.8.1";resolution:=optional,
  com.netappsid.javassist;bundle-version="3.9.0"
+Export-Package: ca.reivax.javablocks

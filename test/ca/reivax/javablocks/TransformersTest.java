@@ -7,7 +7,7 @@ import org.junit.Test;
 public class TransformersTest 
 {
 	@Test
-	public void testNewInstance()
+	public void testNewInstance() throws InstantiationException, IllegalAccessException
 	{
 		ca.reivax.javablocks.Test newInstance = Transformers.newInstance(ca.reivax.javablocks.Test.class, TestInterface.class);
 		
@@ -25,7 +25,7 @@ public class TransformersTest
 	}
 	
 	@Test
-	public void testNewInstanceWithExtendCurrent()
+	public void testNewInstanceWithExtendCurrent() throws InstantiationException, IllegalAccessException
 	{
 		ca.reivax.javablocks.Test newInstance = Transformers.newInstance(ca.reivax.javablocks.Test.class, TestInterfaceExtends.class);
 		

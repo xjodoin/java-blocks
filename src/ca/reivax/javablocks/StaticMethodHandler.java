@@ -3,62 +3,42 @@
  */
 package ca.reivax.javablocks;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
-import javassist.util.proxy.MethodFilter;
 import javassist.util.proxy.MethodHandler;
-import javassist.util.proxy.ProxyFactory;
 
 /**
  * @author Xavier
  * 
  */
-public class StaticMethodHandler implements MethodHandler 
+public class StaticMethodHandler implements MethodHandler
 {
 	private Map<Class, Object> mixins = new HashMap<Class, Object>();
+	private Map<Class, InterceptorHandler> interceptors = new HashMap<Class, InterceptorHandler>();
 	private Object instance;
 
-	
-	public StaticMethodHandler(Class<?>[] interfaces) {
-		
-		for (Class<?> mixinInteface : interfaces) {
-			try 
+	public StaticMethodHandler(Class<?>[] interfaces)
+	{
+
+		for (Class<?> mixinInteface : interfaces)
+		{
+			try
 			{
-				if(mixinInteface.isAnnotationPresent(Mixin.class))
+				if (mixinInteface.isAnnotationPresent(Mixin.class))
 				{
 					final Class<?> interfaceImpl = mixinInteface.getAnnotation(Mixin.class).value();
-					
-					ProxyFactory proxyFactory = new ProxyFactory();
-					
-					proxyFactory.setSuperclass(interfaceImpl);
-					proxyFactory.setFilter(new MethodFilter() {
-						
-						@Override
-						public boolean isHandled(Method method) 
-						{
-							//only handle method aren't in the interface
-							return !method.getDeclaringClass().equals(interfaceImpl);
-						}
-					});
-					
-					proxyFactory.setHandler(new MethodHandler() {
-						
-						@Override
-						public Object invoke(Object self, Method method, Method proceed,
-								Object[] args)
-								throws Throwable {
-							
-							//redirect to the master object
-							return method.invoke(instance, args);
-						}
-					});
-					
-					mixins.put(mixinInteface, proxyFactory.createClass().newInstance());
+
+					Object newInstance = interfaceImpl.newInstance();
+					mixins.put(mixinInteface, newInstance);
+					findInterceptors(newInstance);
 				}
-			} 
-			catch (Exception e) 
+			}
+			catch (Exception e)
 			{
 				e.printStackTrace();
 			}
@@ -68,29 +48,83 @@ public class StaticMethodHandler implements MethodHandler
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see javassist.util.proxy.MethodHandler#invoke(java.lang.Object,
-	 * java.lang.reflect.Method, java.lang.reflect.Method, java.lang.Object[])
+	 * @see javassist.util.proxy.MethodHandler#invoke(java.lang.Object, java.lang.reflect.Method, java.lang.reflect.Method, java.lang.Object[])
 	 */
 	@Override
-	public Object invoke(Object self, Method method, Method proceed,
-			Object[] args) throws Throwable {
+	public Object invoke(Object self, Method method, Method proceed, Object[] args) throws Throwable
+	{
+		try
+		{
+			Set<Entry<Class,InterceptorHandler>> entrySet = interceptors.entrySet();
+			
+			for (Entry<Class, InterceptorHandler> entry : entrySet)
+			{
+				if(entry.getKey().isAssignableFrom(method.getDeclaringClass()))
+				{
+					entry.getValue().call();
+				}
+			}
+			
+			if (mixins.containsKey(method.getDeclaringClass()))
+			{
+				return method.invoke(mixins.get(method.getDeclaringClass()), args);
+			}
+			else
+			{
+				return proceed.invoke(self, args);
+			}
+		}
+		catch (InvocationTargetException e)
+		{
+			throw e.getTargetException();
+		}
 
-		if(mixins.containsKey(method.getDeclaringClass()))
-		{
-			return method.invoke(mixins.get(method.getDeclaringClass()), args);
-		}
-		else
-		{
-			return proceed.invoke(self, args);
-		}
-		
 	}
 
-	public void setInstance(Object instance) {
+	public void setInstance(Object instance)
+	{
 		this.instance = instance;
 	}
 
-	public Object getInstance() {
+	public Object getInstance()
+	{
 		return instance;
+	}
+
+	/**
+	 * @param mixins2
+	 */
+	public void addAllMixins(Map<Class, Object> mixins2)
+	{
+		Set<Entry<Class,Object>> entrySet = mixins2.entrySet();
+		
+		for (Entry<Class, Object> entry : entrySet)
+		{
+			Object value = entry.getValue();
+			mixins.put(entry.getKey(), value);
+			
+			findInterceptors(value);
+		}
+	}
+
+	/**
+	 * @param value
+	 */
+	private void findInterceptors(Object value)
+	{
+		Method[] methods = value.getClass().getMethods();
+		for (Method method : methods)
+		{
+			if(method.isAnnotationPresent(Interceptor.class))
+			{
+				Interceptor annotation = method.getAnnotation(Interceptor.class);
+				Class<?>[] classes = annotation.value();
+				
+				for (Class<?> class1 : classes)
+				{
+					interceptors.put(class1, new InterceptorHandler(value,method));
+				}
+			}
+		}
 	}
 }
