@@ -37,4 +37,13 @@ public class TotoImpl implements Toto
 		return intercept;
 	}
 	
+	/* (non-Javadoc)
+	 * @see ca.reivax.javablocks.Toto#mustAddToList(java.lang.String)
+	 */
+	@Override
+	public void mustAddToList(String string)
+	{
+		((List)this).add(string);
+	}
+	
 }

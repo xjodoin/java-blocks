@@ -10,13 +10,13 @@ public class Implementation<T>
 {
 
 	private final Class<T> interfaceClass;
-	private final T impl;
+	private final Class<? extends T> impl;
 
 	/**
 	 * @param class1
 	 * @param class2
 	 */
-	public Implementation(Class<T> interfaceClass, T impl)
+	public Implementation(Class<T> interfaceClass, Class<? extends T> impl)
 	{
 		this.interfaceClass = interfaceClass;
 		this.impl = impl;
@@ -25,7 +25,7 @@ public class Implementation<T>
 	/**
 	 * @return the impl
 	 */
-	public T getImpl()
+	public Class<? extends T> getImpl()
 	{
 		return impl;
 	}
@@ -33,7 +33,7 @@ public class Implementation<T>
 	/**
 	 * @return
 	 */
-	public Class getInterface()
+	public Class<T> getInterface()
 	{
 		return interfaceClass;
 	}

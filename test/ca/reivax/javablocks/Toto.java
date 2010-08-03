@@ -23,4 +23,9 @@ public interface Toto
 	 */
 	boolean isIntercept();
 
+	/**
+	 * @param string
+	 */
+	void mustAddToList(String string);
+
 }

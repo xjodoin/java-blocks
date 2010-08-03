@@ -22,7 +22,7 @@ public class Transformers
 
 	public static <T> T newInstance(Class<T> mainClass, Class<?>... interfaces) throws InstantiationException, IllegalAccessException
 	{
-		StaticMethodHandler staticMethodHandler = newInstance(createProxyfactory(mainClass, interfaces));
+		MixinHandler staticMethodHandler = newInstance(createProxyfactory(mainClass, interfaces));
 
 		return (T) staticMethodHandler.getInstance();
 	}
@@ -34,9 +34,9 @@ public class Transformers
 	 * @throws IllegalAccessException
 	 * @throws InstantiationException
 	 */
-	private static StaticMethodHandler newInstance(ProxyFactory proxyFactory) throws InstantiationException, IllegalAccessException
+	private static MixinHandler newInstance(ProxyFactory proxyFactory) throws InstantiationException, IllegalAccessException
 	{
-		StaticMethodHandler staticMethodHandler = new StaticMethodHandler(proxyFactory.getInterfaces());
+		MixinHandler staticMethodHandler = new MixinHandler(proxyFactory.getSuperclass().getInterfaces(),proxyFactory.getInterfaces());
 
 		proxyFactory.setHandler(staticMethodHandler);
 
@@ -53,7 +53,7 @@ public class Transformers
 	 * @param interfaces
 	 * @return
 	 */
-	private static ProxyFactory createProxyfactory(final Class<?> mainClass, final Class<?>... interfaces)
+	protected static ProxyFactory createProxyfactory(final Class<?> mainClass, final Class<?>... interfaces)
 	{
 		ProxyFactory proxyFactory = new ProxyFactory()
 			{
@@ -84,7 +84,7 @@ public class Transformers
 	 */
 	public static <T> T newInstance(Class<T> mainClass, Implementation<?>... implementations) throws InstantiationException, IllegalAccessException
 	{
-		Map<Class, Object> mixins = new HashMap<Class, Object>();
+		Map<Class, Class> mixins = new HashMap<Class, Class>();
 
 		for (int i = 0; i < implementations.length; i++)
 		{
@@ -92,7 +92,7 @@ public class Transformers
 			mixins.put(implementation.getInterface(), implementation.getImpl());
 		}
 
-		StaticMethodHandler staticMethodHandler = newInstance(createProxyfactory(mainClass, mixins.keySet().toArray(new Class[0])));
+		MixinHandler staticMethodHandler = newInstance(createProxyfactory(mainClass, mixins.keySet().toArray(new Class[0])));
 
 		staticMethodHandler.addAllMixins(mixins);
 

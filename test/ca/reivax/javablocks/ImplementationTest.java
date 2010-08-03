@@ -22,7 +22,7 @@ public class ImplementationTest
 	@Test
 	public void testImplementationDelegate() throws InstantiationException, IllegalAccessException
 	{
-		Implementation<Toto> implementation = new Implementation<Toto>(Toto.class, new TotoImpl());
+		Implementation<Toto> implementation = new Implementation<Toto>(Toto.class, TotoImpl.class);
 		Object newInstance = Transformers.newInstance(ArrayList.class, implementation);
 
 		((List) newInstance).add(new Object());
@@ -36,12 +36,24 @@ public class ImplementationTest
 	@Test
 	public void testImplementationInterceptor() throws InstantiationException, IllegalAccessException
 	{
-		Implementation<Toto> implementation = new Implementation<Toto>(Toto.class, new TotoImpl());
+		Implementation<Toto> implementation = new Implementation<Toto>(Toto.class, TotoImpl.class);
 		Object newInstance = Transformers.newInstance(ArrayList.class, implementation);
 
 		((List) newInstance).add(new Object());
 
 		assertTrue(((Toto) newInstance).isIntercept());
 
+	}
+
+	@Test
+	public void testRedirectToMasterWithInterface() throws InstantiationException, IllegalAccessException
+	{
+		Implementation<Toto> implementation = new Implementation<Toto>(Toto.class, TotoImpl.class);
+		Object newInstance = Transformers.newInstance(ArrayList.class, implementation);
+
+		Toto toto = (Toto) newInstance;
+		toto.mustAddToList("Test Add");
+		
+		assertEquals("Test Add", ((List)newInstance).get(0));
 	}
 }
