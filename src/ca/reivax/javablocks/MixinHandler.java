@@ -47,21 +47,28 @@ public class MixinHandler implements MethodHandler
 		@Override
 		public Object invoke(Object self, Method method, Method proceed, Object[] args) throws Throwable
 		{
-			if (mixinInterface.isAssignableFrom(method.getDeclaringClass()))
+			try
 			{
-				return proceed.invoke(self, args);
+				if (mixinInterface.isAssignableFrom(method.getDeclaringClass()))
+				{
+					return proceed.invoke(self, args);
+				}
+				// redirect to master
+				return method.invoke(instance, args);
 			}
-			//redirect to master
-			return method.invoke(instance, args);
+			catch (InvocationTargetException e)
+			{
+				throw e.getTargetException();
+			}
 		}
 	}
 
 	public MixinHandler(Class<?>[] masterClassInterfaces, Class<?>[] interfaces)
 	{
-		
+
 		Collections.addAll(allInterfaces, masterClassInterfaces);
 		Collections.addAll(allInterfaces, interfaces);
-		
+
 		for (Class<?> mixinInteface : interfaces)
 		{
 			try
@@ -72,13 +79,13 @@ public class MixinHandler implements MethodHandler
 
 					Set<Class> copy = new HashSet<Class>(allInterfaces);
 					copy.remove(mixinInteface);
-					
+
 					ProxyFactory createProxyfactory = Transformers.createProxyfactory(interfaceImpl, copy.toArray(new Class[0]));
 					createProxyfactory.setHandler(new RedirectHandler(mixinInteface));
-					
+
 					Object newInstance = createProxyfactory.createClass().newInstance();
 					mixins.put(mixinInteface, newInstance);
-					findInterceptors(newInstance,interfaceImpl);
+					findInterceptors(newInstance, interfaceImpl);
 				}
 			}
 			catch (Exception e)
@@ -108,14 +115,15 @@ public class MixinHandler implements MethodHandler
 				}
 			}
 
-			if (mixins.containsKey(method.getDeclaringClass()))
+			for (Entry<Class, Object> entry : mixins.entrySet())
 			{
-				return method.invoke(mixins.get(method.getDeclaringClass()), args);
+				if (method.getDeclaringClass().isAssignableFrom(entry.getKey()))
+				{
+					return method.invoke(entry.getValue(), args);
+				}
 			}
-			else
-			{
-				return proceed.invoke(self, args);
-			}
+
+			return proceed.invoke(self, args);
 		}
 		catch (InvocationTargetException e)
 		{
@@ -136,8 +144,8 @@ public class MixinHandler implements MethodHandler
 
 	/**
 	 * @param mixins2
-	 * @throws IllegalAccessException 
-	 * @throws InstantiationException 
+	 * @throws IllegalAccessException
+	 * @throws InstantiationException
 	 */
 	public void addAllMixins(Map<Class, Class> mixins2) throws InstantiationException, IllegalAccessException
 	{
@@ -148,22 +156,22 @@ public class MixinHandler implements MethodHandler
 			Class mixinInteface = entry.getKey();
 			Set<Class> copy = new HashSet<Class>(allInterfaces);
 			copy.remove(mixinInteface);
-			
+
 			ProxyFactory createProxyfactory = Transformers.createProxyfactory(entry.getValue(), copy.toArray(new Class[0]));
 			createProxyfactory.setHandler(new RedirectHandler(mixinInteface));
-			
+
 			Object newInstance = createProxyfactory.createClass().newInstance();
-			
+
 			mixins.put(mixinInteface, newInstance);
 
-			findInterceptors(newInstance,entry.getValue());
+			findInterceptors(newInstance, entry.getValue());
 		}
 	}
 
 	/**
 	 * @param value
 	 */
-	private void findInterceptors(Object interceptor,Class interceptorClass)
+	private void findInterceptors(Object interceptor, Class interceptorClass)
 	{
 		Method[] methods = interceptorClass.getMethods();
 		for (Method method : methods)
