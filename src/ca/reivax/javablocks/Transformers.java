@@ -26,6 +26,15 @@ public class Transformers
 
 		return (T) staticMethodHandler.getInstance();
 	}
+	
+	public static <T> T wrapInstance(T toWrap, Class<?>... interfaces) throws InstantiationException, IllegalAccessException
+	{
+		MixinHandler staticMethodHandler = newInstance(createProxyfactory(toWrap.getClass(), interfaces));
+		
+		Object proxy = staticMethodHandler.getInstance();
+		staticMethodHandler.setInstance(toWrap);
+		return (T) proxy;
+	}
 
 	/**
 	 * @param <T>
