@@ -62,7 +62,7 @@ public class Transformers
 	 * @param interfaces
 	 * @return
 	 */
-	protected static ProxyFactory createProxyfactory(final Class<?> mainClass, final Class<?>... interfaces)
+	public static ProxyFactory createProxyfactory(final Class<?> mainClass, final Class<?>... interfaces)
 	{
 		ProxyFactory proxyFactory = new ProxyFactory()
 			{
