@@ -1,2 +1,0 @@
-== 0.10.0 ==
-  * added EasyFake, a test tool to help in the creation of fake objects to test alternate paths without mocking the whole object.
