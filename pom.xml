@@ -62,9 +62,9 @@
 	</build>
 	<dependencies>
 		<dependency>
-			<groupId>javassist</groupId>
-			<artifactId>javassist</artifactId>
-			<version>3.12.1.GA</version>
+			<groupId>org.jboss.javassist</groupId>
+			<artifactId>com.springsource.javassist</artifactId>
+			<version>3.10.0.GA</version>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
